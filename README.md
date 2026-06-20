@@ -10,7 +10,7 @@
 
 <div align="center">
 
-🔗 **[Acessar o app](https://chatbotaurora.streamlit.app/)**
+🔗 **[Acessar o site](https://chatbotaurora.streamlit.app/)**
 
 </div>
 
