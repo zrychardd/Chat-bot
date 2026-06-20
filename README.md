@@ -10,7 +10,7 @@
 
 <div align="center">
 
-🔗 **[Acessar o app]([https://ufa-organizei-zrychardds-projects.vercel.app])**
+🔗 **[Acessar o app](https://chatbotaurora.streamlit.app/)**
 
 </div>
 
