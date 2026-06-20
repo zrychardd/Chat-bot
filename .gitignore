@@ -14,3 +14,5 @@ __pycache__/
 
 # Pastas do VS Code
 .vscode/
+
+.gitignore

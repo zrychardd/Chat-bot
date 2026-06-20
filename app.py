@@ -12,176 +12,343 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_nvidia_ai_endpoints import NVIDIAEmbeddings, ChatNVIDIA
 
-# ── Layout ──────────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="Assistente de Manuais PDF",
-    page_icon="📘",
-    layout="centered",
+    page_title="AURORA | PowerTech Solutions",
+    page_icon="❄️",
+    layout="wide",
+    initial_sidebar_state="expanded",
 )
 
 st.markdown("""
 <style>
-    /* Fundo geral */
-    .stApp { background-color: #0f1117; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
 
-    /* Header customizado */
-    .header-box {
-        background: linear-gradient(135deg, #1a1f2e 0%, #16213e 100%);
-        border: 1px solid #76b900;
-        border-radius: 12px;
-        padding: 24px 28px;
-        margin-bottom: 24px;
+    html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+    .stApp { background-color: #060d1a; color: #c8d8f0; }
+
+    /* Estilos da Sidebar */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0a1628 0%, #071020 100%) !important;
+        border-right: 1px solid #1a3050 !important;
     }
-    .header-box h1 {
-        color: #76b900;
-        font-size: 1.6rem;
-        margin: 0 0 4px 0;
+    [data-testid="stSidebar"] > div:first-child {
+        padding: 1rem 1rem 3rem 1rem !important;
+        overflow-y: auto !important;
+    }
+    [data-testid="stSidebar"] * { color: #c8d8f0 !important; }
+
+    .sidebar-logo {
+        text-align: center;
+        padding: 16px 0 24px 0;
+        border-bottom: 1px solid #1a3050;
+        margin-bottom: 20px;
+    }
+    .sidebar-logo .icon { font-size: 2.8rem; display: block; margin-bottom: 6px; }
+    .sidebar-logo h2 {
+        font-family: 'JetBrains Mono', monospace;
+        color: #00b4d8 !important;
+        font-size: 1.1rem;
         font-weight: 700;
-        letter-spacing: -0.5px;
-    }
-    .header-box p {
-        color: #8a9ab5;
         margin: 0;
-        font-size: 0.9rem;
+        letter-spacing: 2px;
+    }
+    .sidebar-logo p {
+        color: #4a6fa5 !important;
+        font-size: 0.65rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin: 4px 0 0 0;
     }
 
-    /* Mensagens do chat */
+    .info-card {
+        background: #0d1f35;
+        border: 1px solid #1a3050;
+        border-radius: 8px;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+    }
+    .info-card .label {
+        font-size: 0.6rem;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: #4a6fa5 !important;
+        margin-bottom: 3px;
+    }
+    .info-card .value {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #c8d8f0 !important;
+    }
+
+    .status-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 0;
+        font-size: 0.78rem;
+        color: #c8d8f0 !important;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-green { background: #00e5a0; box-shadow: 0 0 6px #00e5a0; }
+    .dot-blue  { background: #00b4d8; box-shadow: 0 0 6px #00b4d8; }
+    .dot-gray  { background: #4a6fa5; }
+
+    .sidebar-divider { border: none; border-top: 1px solid #1a3050; margin: 16px 0; }
+
+    /* Conteúdo principal */
+    .main-header {
+        background: linear-gradient(135deg, #0a1628 0%, #0d1f35 60%, #071a2e 100%);
+        border: 1px solid #1a3050;
+        border-radius: 14px;
+        padding: 28px 32px;
+        margin-bottom: 20px;
+    }
+    .main-header h1 {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 1.7rem;
+        font-weight: 700;
+        color: #00b4d8;
+        margin: 0 0 6px 0;
+    }
+    .main-header p { color: #4a6fa5; margin: 0; font-size: 0.88rem; }
+    .tag {
+        display: inline-block;
+        background: rgba(0,180,216,0.15);
+        border: 1px solid rgba(0,180,216,0.3);
+        color: #00b4d8;
+        font-size: 0.68rem;
+        font-weight: 600;
+        padding: 2px 9px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        margin-top: 10px;
+        margin-right: 6px;
+    }
+    .tag-cold { background: rgba(0,229,160,0.1); border-color: rgba(0,229,160,0.25); color: #00e5a0; }
+
     .stChatMessage {
-        background-color: #1a1f2e !important;
+        background-color: #0d1f35 !important;
+        border: 1px solid #1a3050 !important;
         border-radius: 10px !important;
-        border: 1px solid #2a3045 !important;
         margin-bottom: 8px !important;
     }
 
-    /* Input */
-    .stChatInputContainer {
-        border-top: 1px solid #2a3045 !important;
-        padding-top: 12px !important;
+    .stButton > button {
+        background: transparent !important;
+        border: 1px solid #1a3050 !important;
+        color: #4a6fa5 !important;
+        border-radius: 8px !important;
+        font-size: 0.8rem !important;
+        width: 100% !important;
+        transition: all 0.2s !important;
+    }
+    .stButton > button:hover {
+        border-color: #00b4d8 !important;
+        color: #00b4d8 !important;
+        background: rgba(0,180,216,0.06) !important;
     }
 
-    /* Badge verde NVIDIA */
-    .badge {
-        display: inline-block;
-        background: #76b900;
-        color: #0f1117;
-        font-size: 0.72rem;
-        font-weight: 700;
-        padding: 2px 8px;
-        border-radius: 20px;
-        letter-spacing: 0.5px;
-        margin-top: 6px;
-    }
-
-    /* Spinner / info */
-    .stSpinner > div { color: #76b900 !important; }
+    .stSpinner > div { color: #00b4d8 !important; }
+    
+    /* CORREÇÃO: O 'header' foi removido desta lista para permitir que o botão de abrir a sidebar fique visível */
+    #MainMenu, footer { visibility: hidden; }
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("""
-<div class="header-box">
-    <h1>📘 Assistente de Manuais PDF</h1>
-    <p>Faça perguntas sobre o manual técnico — respondo sempre em português.</p>
-    <span class="badge">⚡ NVIDIA AI</span>
-</div>
-""", unsafe_allow_html=True)
-
-# ── API Key ──────────────────────────────────────────────────────────────────
+# ── API Key ───────────────────────────────────────────────────────────────────
 nvidia_api_key = os.environ.get("NVIDIA_API_KEY")
-
 try:
     if "NVIDIA_API_KEY" in st.secrets:
         nvidia_api_key = st.secrets["NVIDIA_API_KEY"]
 except Exception:
     pass
 
-# FIX: lógica estava invertida — parava quando tinha chave
-if not nvidia_api_key:
-    st.error("⚠️ Chave NVIDIA_API_KEY não encontrada. Adicione ao arquivo .env ou ao Secrets.")
+pdf_ok = os.path.exists("manual.pdf")
+api_ok = bool(nvidia_api_key)
+
+# ── SIDEBAR ── renderizada ANTES de qualquer st.stop() ───────────────────────
+with st.sidebar:
+    st.markdown("""
+    <div class="sidebar-logo">
+        <span class="icon">❄️</span>
+        <h2>AURORA</h2>
+        <p>PowerTech Solutions</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="info-card">
+        <div class="label">Produto</div>
+        <div class="value">🏭 Sistema de Refrigeração Industrial</div>
+    </div>
+    <div class="info-card">
+        <div class="label">Equipe Responsável</div>
+        <div class="value">👤 Rychard Eduardo</div>
+    </div>
+    <div class="info-card">
+        <div class="label">Modelo de IA</div>
+        <div class="value">🤖 meta/llama-3.1-8b-instruct</div>
+    </div>
+    <div class="info-card">
+        <div class="label">Embeddings</div>
+        <div class="value">🔢 nvidia/nv-embedqa-e5-v5</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<hr class='sidebar-divider'>", unsafe_allow_html=True)
+
+    st.markdown(f"""
+    <div style="font-size:0.65rem; letter-spacing:1.5px; text-transform:uppercase; color:#4a6fa5; margin-bottom:8px;">Status do Sistema</div>
+    <div class="status-row">
+        <div class="dot {'dot-green' if pdf_ok else 'dot-gray'}"></div>
+        <span>Manual PDF {'carregado' if pdf_ok else 'não encontrado'}</span>
+    </div>
+    <div class="status-row">
+        <div class="dot {'dot-green' if api_ok else 'dot-gray'}"></div>
+        <span>API Key {'configurada' if api_ok else 'ausente'}</span>
+    </div>
+    <div class="status-row">
+        <div class="dot {'dot-blue' if (pdf_ok and api_ok) else 'dot-gray'}"></div>
+        <span>Vetorização FAISS {'ativa' if (pdf_ok and api_ok) else 'aguardando'}</span>
+    </div>
+    <div class="status-row">
+        <div class="dot {'dot-green' if api_ok else 'dot-gray'}"></div>
+        <span>IA {'conectada' if api_ok else 'desconectada'}</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<hr class='sidebar-divider'>", unsafe_allow_html=True)
+
+    if st.button("🗑️  Limpar Conversa"):
+        st.session_state.messages = [
+            {"role": "assistant", "content": "Conversa reiniciada. Como posso ajudar? ❄️"}
+        ]
+        st.rerun()
+
+    st.markdown("""
+    <div style="margin-top:20px; font-size:0.68rem; color:#2a4060; text-align:center; line-height:1.8;">
+        PowerTech Solutions © 2025<br>
+        AURORA v1.0 — SENAI
+    </div>
+    """, unsafe_allow_html=True)
+
+# ── Header ────────────────────────────────────────────────────────────────────
+st.markdown("""
+<div class="main-header">
+    <h1>❄️ AURORA</h1>
+    <p>Assistente inteligente de suporte técnico para sistemas de refrigeração industrial.</p>
+    <span class="tag">⚡ NVIDIA AI</span>
+    <span class="tag">🔍 RAG</span>
+    <span class="tag tag-cold">❄️ Refrigeração</span>
+</div>
+""", unsafe_allow_html=True)
+
+# ── Validações ────────────────────────────────────────────────────────────────
+if not api_ok:
+    st.error("⚠️ **NVIDIA_API_KEY** não encontrada. Adicione ao `.env`.")
     st.stop()
 
-# ── RAG ──────────────────────────────────────────────────────────────────────
-@st.cache_resource(show_spinner="⚙️ Processando o PDF, aguarde...")
-def inicializar_rag():
-    nome_arquivo = "manual.pdf"
+if not pdf_ok:
+    st.error("⚠️ `manual.pdf` não encontrado na pasta do projeto.")
+    st.stop()
 
-    # FIX: verificava a string literal "nome_arquivo" em vez da variável
-    if not os.path.exists(nome_arquivo):
-        st.error(f"Arquivo '{nome_arquivo}' não encontrado na pasta do projeto.")
-        st.stop()  # FIX: faltava ()
-
-    loader = PyPDFLoader(nome_arquivo)
+# ── RAG ───────────────────────────────────────────────────────────────────────
+@st.cache_resource(show_spinner=False)
+def inicializar_rag(api_key):
+    loader = PyPDFLoader("manual.pdf")
     paginas = loader.load()
-
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=400,
-        chunk_overlap=50,  # FIX: era chunk_olverlap
-    )
-
-    docs = text_splitter.split_documents(paginas)
-
+    splitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=50)
+    docs = splitter.split_documents(paginas)
     embeddings = NVIDIAEmbeddings(
         model="nvidia/nv-embedqa-e5-v5",
-        nvidia_api_key=nvidia_api_key,
+        nvidia_api_key=api_key,
         model_type="passage",
     )
-
     vectorstore = FAISS.from_documents(docs, embedding=embeddings)
-    return vectorstore.as_retriever(search_kwargs={"k": 4})  # FIX: "K" → "k"
+    return vectorstore.as_retriever(search_kwargs={"k": 4})
 
-retriever = inicializar_rag()
+try:
+    with st.spinner("⚙️ Processando manual e inicializando vetores..."):
+        retriever = inicializar_rag(nvidia_api_key)
+    rag_ok = True
+except Exception as e:
+    st.error(f"❌ Erro ao inicializar RAG: `{e}`")
+    rag_ok = False
 
-llm = ChatNVIDIA(
-    model="meta/llama-3.1-8b-instruct",
-    nvidia_api_key=nvidia_api_key,
-    temperature=0.2,
-)
+# ── LLM + Chat ────────────────────────────────────────────────────────────────
+if rag_ok:
+    llm = ChatNVIDIA(
+        model="meta/llama-3.1-8b-instruct",
+        nvidia_api_key=nvidia_api_key,
+        temperature=0.2,
+        max_tokens=1024,
+    )
 
-template_prompt = """
-Você é um assistente técnico especializado e prestativo.
-Os textos de contexto abaixo foram extraídos de um manual de produtos/serviços e podem estar em INGLÊS.
-Analise o contexto mesmo que esteja em inglês, mas responda OBRIGATORIAMENTE EM PORTUGUÊS DO BRASIL.
+    template_prompt = """
+PERSONA:
+Você é a AURORA, uma engenheira especialista em manutenção e diagnóstico de sistemas de refrigeração industrial da PowerTech Solutions. Você é preciso, técnico e direto.
 
-Use estritamente as informações fornecidas. Se a resposta não constar no manual, diga:
-"Desculpe, mas essa informação não consta no manual."
+TAREFA:
+Auxiliar técnicos de campo a diagnosticar alarmes, identificar causas de falhas, executar procedimentos de manutenção preventiva/corretiva e garantir a segurança operacional dos equipamentos.
 
-Contexto:
+CONTEXTO:
+As informações abaixo foram extraídas do manual técnico oficial do equipamento e podem estar em inglês. Analise o conteúdo em inglês, mas SEMPRE responda em PORTUGUÊS DO BRASIL, de forma clara e estruturada.
+
+RESTRIÇÕES:
+- Use EXCLUSIVAMENTE as informações do manual fornecido no contexto.
+- Se a informação não constar no manual, responda: "⚠️ Esta informação não consta no manual técnico. Recomendo contato com o suporte da PowerTech Solutions."
+- Nunca invente dados técnicos, códigos de erro ou procedimentos.
+- Para procedimentos de segurança, sempre incluir alertas de risco quando aplicável.
+
+CONTEXTO DO MANUAL:
 {context}
 
-Pergunta: {question}
-Resposta em português:
+PERGUNTA DO TÉCNICO: {question}
+
+RESPOSTA TÉCNICA (em português):
 """
-# FIX: "question" estava fora das chaves no template original
 
-prompt = ChatPromptTemplate.from_template(template_prompt)
+    prompt_template = ChatPromptTemplate.from_template(template_prompt)
+    rag_chain = (
+        {"context": retriever, "question": RunnablePassthrough()}
+        | prompt_template
+        | llm
+        | StrOutputParser()
+    )
 
-rag_chain = (
-    {"context": retriever, "question": RunnablePassthrough()}
-    | prompt
-    | llm
-    | StrOutputParser()
-)
+    if "messages" not in st.session_state:
+        st.session_state.messages = [
+            {
+                "role": "assistant",
+                "content": (
+                    "Olá! Sou a **AURORA**, sua assistente técnica especializada em sistemas de refrigeração industrial. ❄️\n\n"
+                    "Posso ajudar com:\n"
+                    "- 🔴 Significado de alarmes e códigos de erro\n"
+                    "- 🔧 Procedimentos de manutenção preventiva e corretiva\n"
+                    "- ⚡ Diagnóstico de falhas\n"
+                    "- 🔒 Recomendações de segurança\n"
+                    "- 🔄 Procedimentos de reinicialização\n\n"
+                    "Como posso ajudar?"
+                )
+            }
+        ]
 
-# ── Chat ──────────────────────────────────────────────────────────────────────
-if "messages" not in st.session_state:
-    st.session_state.messages = [
-        {"role": "assistant", "content": "Olá! Manual carregado com sucesso. O que você deseja saber? 😊"}
-    ]
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.write(message["content"])
+    if prompt_usuario := st.chat_input("Ex: O que significa o alarme E-04?"):
+        st.session_state.messages.append({"role": "user", "content": prompt_usuario})
+        with st.chat_message("user"):
+            st.markdown(prompt_usuario)
 
-if prompt_usuario := st.chat_input("Ex: Qual o significado do código de erro 4?"):
-    st.session_state.messages.append({"role": "user", "content": prompt_usuario})
-    with st.chat_message("user"):
-        st.write(prompt_usuario)
-
-    with st.chat_message("assistant"):
-        with st.spinner("Consultando o manual técnico..."):
-            try:
-                resposta = rag_chain.invoke(prompt_usuario)
-                st.write(resposta)
-                # FIX: era .messages(...) com () em vez de .append(...)
-                st.session_state.messages.append({"role": "assistant", "content": resposta})
-            except Exception as e:
-                st.error(f"Erro ao processar a requisição da API: {e}")
+        with st.chat_message("assistant"):
+            with st.spinner("🔍 Consultando manual técnico..."):
+                try:
+                    resposta = rag_chain.invoke(prompt_usuario)
+                    st.markdown(resposta)
+                    st.session_state.messages.append({"role": "assistant", "content": resposta})
+                except Exception as e:
+                    erro_msg = f"❌ Erro: `{e}`"
+                    st.error(erro_msg)
+                    st.session_state.messages.append({"role": "assistant", "content": erro_msg})
