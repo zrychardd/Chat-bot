@@ -55,5 +55,5 @@ Siga os passos abaixo para testar o sistema na sua máquina.
 
 ### 1. Clone o repositório
 ```bash
-git clone [[https://github.com/SEU-USUARIO/aurora-ai.git](https://github.com/SEU-USUARIO/aurora-ai.git)](https://github.com/zrychardd/Chat-bot.git)
+git clone https://github.com/SEU-USUARIO/aurora-ai.git
 cd aurora-ai
