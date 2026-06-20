@@ -1,0 +1,16 @@
+# Ambientes Virtuais (Substitua se o seu tiver outro nome)
+.venv/
+venv/
+env/
+
+# Arquivos de Variáveis de Ambiente (MUITO IMPORTANTE)
+.env
+
+# Arquivos gerados automaticamente pelo Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Pastas do VS Code
+.vscode/
