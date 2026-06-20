@@ -8,7 +8,16 @@
 
 > **AURORA AI** é uma aplicação desenvolvida como projeto educacional (SENAI) para a empresa fictícia *PowerTech Solutions*. Trata-se de um sistema de inteligência artificial voltado para o diagnóstico e manutenção de **Sistemas de Refrigeração Industrial**.
 
+<div align="center">
+
+🔗 **[Acessar o app]([https://ufa-organizei-zrychardds-projects.vercel.app])**
+
+</div>
+
 ---
+
+
+
 
 ## 💡 Sobre o Projeto
 
